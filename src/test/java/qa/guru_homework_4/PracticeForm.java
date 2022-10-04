@@ -1,17 +1,52 @@
 package qa.guru_homework_4;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
-import org.junit.jupiter.api.BeforeAll;
+import com.github.javafaker.Faker;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pages.RegistationPageForm.*;
+import pages.RegistationPageForm;
+import utils.RandomUtils;
 
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selectors.byText;
+
+import java.util.Locale;
+
 import static com.codeborne.selenide.Selenide.*;
 
 
-public class PracticeForm {
+
+public class PracticeForm extends TestBase {
+
+    RegistationPageForm.RegistrationFormPage registrationFormPage = new RegistationPageForm.RegistrationFormPage();
+
+    Faker fakerRu = new Faker(new Locale("ru-RU"));
+    Faker fakerEn = new Faker();
+
+    String  valueFirstName,
+            valueLastName,
+            valueDay,
+            valueMonth ,
+            valueYear ,
+            valueMail ,
+            valueGender,
+            valueNumber,
+            valueHobby ,
+            valueAdress;
+
+
+    @BeforeEach
+    void prepareTestData(){
+        valueFirstName = fakerRu.name().firstName();
+        valueLastName = fakerRu.name().lastName();
+        valueDay = fakerRu.number().numberBetween(1, 30)+"";
+        valueMonth = RandomUtils.getRandomMonth();
+        valueYear = fakerRu.number().numberBetween(1900, 2022)+"";
+        valueMail = fakerEn.internet().emailAddress();
+        valueGender = fakerRu.demographic().sex();
+        valueNumber = fakerEn.phoneNumber().subscriberNumber(10);
+        valueHobby = RandomUtils.getRandomHobby();
+        valueAdress = fakerRu.address().fullAddress();
+
+    }
 
     private SelenideElement
             firstName = $("#firstName"),
@@ -27,43 +62,30 @@ public class PracticeForm {
             city = $("#city");
 
 
-    @BeforeAll
-    static void configure(){
-        Configuration.baseUrl = "https://demoqa.com";
-    }
 
-    RegistrationFormPage registrationFormPage = new RegistrationFormPage();
 
 
     @Test
     void fillForms(){
                 registrationFormPage.openPage()
-                    .setFirstName("Got")
-                    .setLastName("Ner")
-                    .setEmail("gor@ya.ru")
-                    .setGender("Female")
-                    .setNumber("8912218376")
-                    .setBirthDate("29", "March", "2008")
-                    .setSubjects("History")
-                    .setHobby("Sports")
-                    .setHobby("Reading")
-                    .setHobby("Music")
+                    .setFirstName(valueFirstName)
+                    .setLastName(valueLastName)
+                    .setEmail(valueMail)
+                    .setGender(valueGender)
+                    .setNumber(valueNumber)
+                    .setBirthDate(valueDay, valueMonth, valueYear)
+                    .setHobby(valueHobby)
                     .uploadFile("src/test/resources/file.txt")
-                    .setCurrentAddress("Moscow")
-                    .setState("NCR")
-                    .setCity("Delhi")
+                    .setCurrentAddress(valueAdress)
                     .pressSubmit();
 
             registrationFormPage.checkResultsTableVisible()
-                    .checkResults("Student Name", "Got Ner")
-                    .checkResults("Student Email", "gor@ya.ru")
-                    .checkResults("Gender", "Female")
-                    .checkResults("Mobile", "8912218376")
-                    .checkResults("Date of Birth", "29 March,2008")
-                    .checkResults("Subjects", "History")
-                    .checkResults("Hobbies", "Sports, Reading, Music")
-                    .checkResults("Picture", "file.txt")
-                    .checkResults("Address", "Moscow")
-                    .checkResults("State and City", "NCR Delhi");
+                    .checkResults("Student Name", valueFirstName + " " +  valueLastName)
+                    .checkResults("Student Email", valueMail)
+                    .checkResults("Gender", valueGender)
+                    .checkResults("Mobile", valueNumber)
+                    .checkResults("Date of Birth", valueDay + " " + valueMonth + "," + valueYear )
+                    .checkResults("Hobbies", valueHobby)
+                    .checkResults("Picture", "file.txt");
         }
 }
